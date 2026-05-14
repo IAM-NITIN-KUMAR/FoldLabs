@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FoldBench AF3 Protein Lab</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <section class="intro-screen" id="introScreen" aria-label="FoldBench introduction">
+      <div class="intro-visual" aria-hidden="true">
+        <canvas id="introCanvas" width="1100" height="720"></canvas>
+      </div>
+      <div class="intro-copy">
+        <p class="eyebrow">Protein design workbench</p>
+        <h1>FoldBench</h1>
+        <p>A focused workspace for protein sequence experiments and AlphaFold 3-ready handoff.</p>
+        <div class="intro-actions">
+          <button type="button" class="primary-action" id="enterLab">Open lab</button>
+        </div>
+      </div>
+    </section>
+
+    <main class="app-shell">
+      <header class="app-header">
+        <div>
+          <p class="eyebrow">AlphaFold 3 experiment workspace</p>
+          <h1>FoldBench</h1>
+        </div>
+        <div class="status-pill" id="runStatus">Local preview ready</div>
+      </header>
+
+      <section class="workspace">
+        <aside class="panel sequence-panel" aria-label="Protein sequence setup">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Input</p>
+              <h2>Protein Sequence</h2>
+            </div>
+            <button class="icon-button" type="button" id="loadExample" title="Load example sequence" aria-label="Load example sequence">↺</button>
+          </div>
+
+          <label class="field-label" for="proteinName">Job name</label>
+          <input id="proteinName" type="text" value="my_protein_design" autocomplete="off">
+
+          <label class="field-label" for="sequenceInput">Amino acid sequence</label>
+          <textarea id="sequenceInput" spellcheck="false">MKTAYIAKQRQISFVKSHFSRQDILDLWQNPFQRLVAFWQFGLK</textarea>
+
+          <div class="sequence-actions">
+            <button type="button" class="primary-action" id="analyzeSequence">Analyze</button>
+            <button type="button" id="cleanSequence">Clean</button>
+          </div>
+
+          <div class="metrics-grid" id="sequenceMetrics" aria-live="polite"></div>
+
+          <div class="sequence-map" id="sequenceMap" aria-label="Residue sequence map"></div>
+        </aside>
+
+        <section class="panel experiment-panel" aria-label="AlphaFold 3 experiment controls">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Design</p>
+              <h2>AF3 Experiment</h2>
+            </div>
+          </div>
+
+          <div class="preset-grid" aria-label="Experiment presets">
+            <button type="button" class="preset-button active" data-experiment="single_fold">
+              <strong>Single-chain fold</strong>
+              <span>Predict one cleaned protein sequence.</span>
+            </button>
+            <button type="button" class="preset-button" data-experiment="mutagenesis">
+              <strong>Alanine scan</strong>
+              <span>Find sensitive residues with point mutations.</span>
+            </button>
+            <button type="button" class="preset-button" data-experiment="ligand">
+              <strong>Ligand screen</strong>
+              <span>Test binding-pocket compatibility.</span>
+            </button>
+            <button type="button" class="preset-button" data-experiment="complex">
+              <strong>Protein complex</strong>
+              <span>Model two interacting chains.</span>
+            </button>
+            <button type="button" class="preset-button" data-experiment="stability">
+              <strong>Stability rescue</strong>
+              <span>Explore core-packing substitutions.</span>
+            </button>
+            <button type="button" class="preset-button" data-experiment="disorder">
+              <strong>Disorder check</strong>
+              <span>Flag flexible or low-confidence regions.</span>
+            </button>
+          </div>
+
+          <div class="control-grid">
+            <label>
+              Molecule type
+              <select id="moleculeType">
+                <option value="protein">Protein chain</option>
+                <option value="protein_ligand">Protein + ligand</option>
+                <option value="complex">Protein complex</option>
+              </select>
+            </label>
+            <label>
+              Preview focus
+              <select id="previewMode">
+                <option value="fold">Fold confidence</option>
+                <option value="mutation">Mutation rescue</option>
+                <option value="binding">Binding pocket</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="conditions-box">
+            <div class="panel-head compact">
+              <div>
+                <p class="eyebrow">Protocol</p>
+                <h3>Experiment Conditions</h3>
+              </div>
+            </div>
+            <div class="condition-grid">
+              <label>
+                Ligand / cofactor
+                <select id="ligandCode">
+                  <option value="">None</option>
+                  <option value="ATP">ATP</option>
+                  <option value="HEM">Heme</option>
+                  <option value="NAD">NAD</option>
+                  <option value="ZN">Zinc ion</option>
+                  <option value="MG">Magnesium ion</option>
+                </select>
+              </label>
+              <label>
+                Chain copies
+                <input id="chainCopies" type="number" min="1" max="4" value="1">
+              </label>
+              <label>
+                pH
+                <input id="phValue" type="number" min="3" max="11" step="0.1" value="7.4">
+              </label>
+              <label>
+                Temperature
+                <select id="temperaturePreset">
+                  <option value="room">Room temp</option>
+                  <option value="cold">Cold room</option>
+                  <option value="physio">37 C</option>
+                  <option value="heat">Heat stress</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div class="mutation-builder">
+            <div class="panel-head compact">
+              <div>
+                <p class="eyebrow">Variant scan</p>
+                <h3>Mutate Residue</h3>
+              </div>
+              <button type="button" id="addMutation">Add</button>
+            </div>
+            <div class="mutation-controls">
+              <label>
+                Position
+                <input id="mutationPosition" type="number" min="1" value="8">
+              </label>
+              <label>
+                New residue
+                <select id="mutationResidue">
+                  <option value="A">Ala</option>
+                  <option value="L">Leu</option>
+                  <option value="K">Lys</option>
+                  <option value="D">Asp</option>
+                  <option value="F">Phe</option>
+                  <option value="G">Gly</option>
+                  <option value="S">Ser</option>
+                  <option value="W">Trp</option>
+                </select>
+              </label>
+            </div>
+            <ol class="mutation-list" id="mutationList"></ol>
+          </div>
+
+          <div class="af3-card">
+            <div>
+              <p class="eyebrow">Handoff</p>
+              <h3>AlphaFold 3 JSON</h3>
+              <p>Generate an AF3-style input package for a backend or local AlphaFold 3 runner. The official web server is non-commercial and browser-first, so this app prepares clean inputs and lets you import results.</p>
+            </div>
+            <div class="button-row">
+              <button type="button" class="primary-action" id="runPreview">Run local preview</button>
+              <button type="button" id="downloadJson">Download AF3 JSON</button>
+            </div>
+          </div>
+
+          <div class="result-card" id="predictionCard" aria-live="polite"></div>
+        </section>
+
+        <section class="panel viewer-panel" aria-label="Structure viewer and result import">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Structure</p>
+              <h2>3D Fold Viewer</h2>
+            </div>
+            <div class="viewer-tools">
+              <button class="icon-button" type="button" id="resetView" title="Reset camera" aria-label="Reset camera">⌂</button>
+              <button class="icon-button" type="button" id="toggleSpin" title="Toggle spin" aria-label="Toggle spin">⟳</button>
+            </div>
+          </div>
+
+          <div class="viewer-wrap">
+            <canvas id="structureCanvas" width="900" height="620" aria-label="Interactive predicted structure"></canvas>
+            <div class="viewer-readout" id="viewerReadout">Drag to rotate. Scroll to zoom.</div>
+          </div>
+
+          <div class="import-box">
+            <label class="field-label" for="structureFile">Import AF3 result, PDB, or mmCIF</label>
+            <input id="structureFile" type="file" accept=".pdb,.cif,.mmcif,.txt">
+          </div>
+
+          <div class="log-panel">
+            <div class="panel-head compact">
+              <div>
+                <p class="eyebrow">Run log</p>
+                <h3>Experiments</h3>
+              </div>
+              <button type="button" id="clearLog">Clear</button>
+            </div>
+            <ol id="eventLog"></ol>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
