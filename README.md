@@ -4,17 +4,7 @@ A static web workbench for exploring protein sequences, planning mutations, prep
 
 ## Run
 
-Open `index.html` directly in a browser, or start a tiny static server:
 
-```powershell
-python -m http.server 4174
-```
-
-Then open:
-
-```text
-http://localhost:4174/index.html
-```
 
 ## What it does
 
