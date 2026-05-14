@@ -129,8 +129,8 @@ function analyze(seq) {
     counts[classify(residue)] += 1;
   });
   const disorderRisk = usable.length
-    ? Math.min(92, Math.max(8, counts.special * 2.4 + counts.charged * 0.9 - counts.hydrophobic * 0.35))
-    : 0;
+  ? Math.min(92, Math.max(2, counts.special * 3.2 + counts.charged * 1.4 - counts.hydrophobic * 0.2))
+  : 0;
   const pocketSignal = usable.length
     ? Math.min(96, Math.max(12, counts.hydrophobic * 1.5 + (usable.match(/[FWY]/g) || []).length * 2.5))
     : 0;
